@@ -1,0 +1,19 @@
+[requires]
+# Reslove the conflict of dependencies
+opengl/system
+
+# Window / Cursor / Event libary
+glfw/3.3.2
+
+# OpenGL loader
+glew/2.1.0
+
+# Mathematics
+glm/0.9.9.8
+
+[generators]
+cmake
+
+[imports]
+bin, *.dll -> ./build/bin
+lib, *.dylib* -> ./build/bin
