@@ -53,7 +53,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       env:
         CXX: ${{ matrix.compiler }}
-      run: cmake $GITHUB_WORKSPACE/app
+      run: cmake $GITHUB_WORKSPACE
 
     - name: Build
       working-directory: ${{ runner.workspace }}/build
@@ -98,7 +98,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       env:
         CXX: ${{ matrix.compiler }}
-      run: cmake $GITHUB_WORKSPACE/app
+      run: cmake $GITHUB_WORKSPACE
 
     - name: Build
       working-directory: ${{ runner.workspace }}/build
