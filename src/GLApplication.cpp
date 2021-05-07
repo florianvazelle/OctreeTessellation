@@ -1,12 +1,13 @@
 #include <GLApplication.hpp>
 
 #define GLM_FORCE_RADIANS
+#include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include <cmath>
 #include <iostream>
 #include <vector>
+
+#define WORK_GROUP_SIZE 128
 
 void GLApplication::Initialize(GLFWwindow* window) {
   /* Initialize OpenGL */
@@ -21,31 +22,54 @@ void GLApplication::Initialize(GLFWwindow* window) {
   std::cout << "Vendor : " << glGetString(GL_VENDOR) << std::endl;
   std::cout << "Renderer : " << glGetString(GL_RENDERER) << std::endl;
 
-  /* Load basic shader */
+  /* Load shaders */
 
-  _basicShader.LoadShader(GL_VERTEX_SHADER, BASIC_VERT);
-  // _basicShader.LoadShader(GL_TESS_CONTROL_SHADER, BASIC_TESC);
-  // _basicShader.LoadShader(GL_TESS_EVALUATION_SHADER, BASIC_TESE);
-  _basicShader.LoadShader(GL_FRAGMENT_SHADER, BASIC_FRAG);
-  _basicShader.Create();
+  _computeShader.LoadShader(GL_COMPUTE_SHADER, BASIC_COMP);
+  _computeShader.Create();
+
+  _renderShader.LoadShader(GL_VERTEX_SHADER, BASIC_VERT);
+  _renderShader.LoadShader(GL_TESS_CONTROL_SHADER, BASIC_TESC);
+  _renderShader.LoadShader(GL_TESS_EVALUATION_SHADER, BASIC_TESE);
+  _renderShader.LoadShader(GL_FRAGMENT_SHADER, BASIC_FRAG);
+  _renderShader.Create();
+
+  /* Initialize OpenGL stuff */
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glLineWidth(0.5);
 
-  _sphere.Initialize(72, 24, 2.0f);
+  /* Generate sphere structure */
+
+  _sphere.Generate(72, 24, 2.0f);
+
+  const GLuint& render_tess_shader = _renderShader.GetProgram();
+  _sphere.Initialize(render_tess_shader);
+
+  {
+    const GLuint& compute_octree_shader = _computeShader.GetProgram();
+
+    GLuint loc_vbo = glGetProgramResourceIndex(compute_octree_shader, GL_SHADER_STORAGE_BLOCK, "VertexBlock");
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc_vbo, _sphere.vbo());
+  }
 }
 
 void GLApplication::Idle() {
   double dt, dtheta = M_PI, step = 50.0;
   static double t0 = 0, t;
 
+  /* Compute delta time */
+
   dt = ((t = glfwGetTime()) - t0) / 100.0;
   t0 = t;
+
+  /* Rotate camera */
 
   if (_keyEvent.key(KLEFT))
     _cam.theta += dt * step * dtheta;
   else if (_keyEvent.key(KRIGHT))
     _cam.theta -= dt * step * dtheta;
+
+  /* Move camera */
 
   float s = std::sin(_cam.theta);
   float c = std::cos(_cam.theta);
@@ -69,94 +93,65 @@ void GLApplication::Display(GLFWwindow* window) {
   int width, height;
   glfwGetWindowSize(window, &width, &height);
 
-  auto basic = _basicShader.GetProgram();
-  glUseProgram(basic);
-
-  /* OpenGL Stuff */
+  /* Computing */
 
   {
-    // Enable depth test
-    glEnable(GL_DEPTH_TEST);
-    // Accept fragment if it closer to the camera than the former one
-    glDepthFunc(GL_LESS);
+    const GLuint& compute_octree_shader = _computeShader.GetProgram();
+    glUseProgram(compute_octree_shader);
 
-    glViewport(0, 0, width, height);
-    // Clear the screen
-    glClearColor(0.f, 0.f, 1.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Launch compute shader
+    glDispatchCompute(_sphere.vert().size() / 128, 1, 1);
   }
 
-  /* Compute MVP matrix */
+  // Make sure writing to buffer has finished before read
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+
+  /* Rendering */
 
   {
-    glm::mat4 model, view, projection;
+    const GLuint& render_tess_shader = _renderShader.GetProgram();
+    glUseProgram(render_tess_shader);
 
-    glm::vec3 eye = glm::vec3(_cam.x, _cam.y, _cam.z);
-    glm::vec3 look = glm::vec3(_cam.x - std::sin(_cam.theta), 0.0, _cam.z - std::cos(_cam.theta));
-    glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
+    /* OpenGL Stuff */
 
-    model = glm::scale(glm::mat4(1.0), {0.5, 0.5, 0.5});
+    {
+      // Enable depth test
+      glEnable(GL_DEPTH_TEST);
+      // Accept fragment if it closer to the camera than the former one
+      glDepthFunc(GL_LESS);
 
-    view = glm::lookAt(eye, look, up);
-    // std::cout << _cam.x << ", " << _cam.y << ", " << _cam.z << "\n";
+      glViewport(0, 0, width, height);
+      // Clear the screen
+      glClearColor(0.f, 0.f, 1.f, 1.f);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
 
-    float angle = 90.0f;
-    float near = 0.1f;
-    float far = 100.0f;
-    float aspect = width / height;
-    projection = glm::perspective((float)(angle * M_PI) / 180.f, aspect, near, far);
-    //   projection = glm::frustum(-0.005, 0.005, -0.005 * height / width, 0.005 * height / width,
-    //   0.01, 1000.0);
+    /* Compute MVP matrix */
 
-    glUniformMatrix4fv(glGetUniformLocation(basic, "u_modelMatrix"), 1, GL_FALSE, &(model[0][0]));
-    glUniformMatrix4fv(glGetUniformLocation(basic, "u_viewMatrix"), 1, GL_FALSE, &(view[0][0]));
-    glUniformMatrix4fv(glGetUniformLocation(basic, "u_projectionMatrix"), 1, GL_FALSE,
-                       &(projection[0][0]));
-  }
+    {
+      glm::mat4 model, view, projection;
 
-  /* Draw */
+      glm::vec3 eye = glm::vec3(_cam.x, _cam.y, _cam.z);
+      glm::vec3 look = glm::vec3(_cam.x - std::sin(_cam.theta), 0.0, _cam.z - std::cos(_cam.theta));
+      glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
 
-  {
-    std::vector<glm::vec3> vertices = _sphere.vertices();
-    std::vector<GLuint> indices = _sphere.indices();
+      model = glm::scale(glm::mat4(1.0), {0.5, 0.5, 0.5});
 
-    GLuint mesh;
-    glGenVertexArrays(1, &mesh);
-    glBindVertexArray(mesh);
+      view = glm::lookAt(eye, look, up);
 
-    // This will identify our vertex buffer
-    GLuint mesh_vbo;
-    // Generate 1 buffer, put the resulting identifier in mesh_vbo
-    glGenBuffers(1, &mesh_vbo);
-    // The following commands will talk about our 'mesh_vbo' buffer
-    glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
-    // Give our vertices to OpenGL.
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(),
-                 GL_DYNAMIC_DRAW);
+      float angle = 90.0f;
+      float near = 0.1f;
+      float far = 100.0f;
+      float aspect = width / height;
+      projection = glm::perspective((float)(angle * M_PI) / 180.f, aspect, near, far);
 
-    /* Prepare the data for drawing through a buffer indices */
-    GLuint mesh_ibo;
-    glGenBuffers(1, &mesh_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), indices.data(),
-                 GL_DYNAMIC_DRAW);
+      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_modelMatrix"), 1, GL_FALSE, &(model[0][0]));
+      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_viewMatrix"), 1, GL_FALSE, &(view[0][0]));
+      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_projectionMatrix"), 1, GL_FALSE, &(projection[0][0]));
+    }
 
-    // Indique que les donnees sont sous forme de tableau
-    glEnableVertexAttribArray(0);
+    /* Draw */
 
-    int loc_position = glGetAttribLocation(basic, "a_position");
-    // Specifie la structure des donnees envoyees au GPU
-    glVertexAttribPointer(loc_position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-
-    //   glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-
-    glDisableVertexAttribArray(0);
-
-    // unbind VBOs
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    _sphere.Draw();
   }
 }
-
-void GLApplication::Shutdown() { _basicShader.Destroy(); }

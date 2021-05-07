@@ -1,0 +1,77 @@
+#version 450 core
+
+/* Structures */
+
+struct AABB {
+  float radius; // 4
+  vec3 center;  // 12
+};
+
+struct Octree {
+  AABB bound;  // 16
+  int depth;   // 4
+};
+
+/* Variables */
+
+// const variable
+const int maxDepth = 3;
+
+// global variable
+layout(shared) buffer Oct {
+  Octree OctreeBuffer[];
+  uint u_OctreeBufferCount;
+};
+
+/* Functions */
+
+// https://math.stackexchange.com/questions/1472049/check-if-a-point-is-inside-a-rectangular-shaped-area-3d
+bool IsInsideAABB(AABB bound, vec3 point) {
+  vec3 p1 = vec3(bound.center.x + bound.radius, bound.center.y + bound.radius, bound.center.z + bound.radius);
+  vec3 p2 = vec3(bound.center.x - bound.radius, bound.center.y + bound.radius, bound.center.z + bound.radius);
+  vec3 p3 = vec3(bound.center.x + bound.radius, bound.center.y - bound.radius, bound.center.z + bound.radius);
+  vec3 p4 = vec3(bound.center.x + bound.radius, bound.center.y + bound.radius, bound.center.z - bound.radius);
+  vec3 p5 = vec3(bound.center.x - bound.radius, bound.center.y - bound.radius, bound.center.z + bound.radius);
+  vec3 p6 = vec3(bound.center.x + bound.radius, bound.center.y - bound.radius, bound.center.z - bound.radius);
+  vec3 p7 = vec3(bound.center.x - bound.radius, bound.center.y + bound.radius, bound.center.z - bound.radius);
+  vec3 p8 = vec3(bound.center.x - bound.radius, bound.center.y - bound.radius, bound.center.z - bound.radius);
+
+  vec3 u = p2 - p1;
+  vec3 v = p2 - p7;
+  vec3 w = p2 - p5;
+
+  float du = dot(u, point);
+  float dv = dot(v, point);
+  float dw = dot(w, point);
+
+  return ((dot(u, p2) <= du && du <= dot(u, p1)) && (dot(u, p2) <= dv && dv <= dot(u, p7)) &&
+          (dot(u, p2) <= dw && dw <= dot(u, p5)));
+}
+
+AABB ComputeAABB(AABB bound, int i) {
+  vec3 boundOffsetTable[8] = {{-0.5, -0.5, -0.5}, {+0.5, -0.5, -0.5}, {-0.5, +0.5, -0.5},
+                              {+0.5, +0.5, -0.5}, {-0.5, -0.5, +0.5}, {+0.5, -0.5, +0.5},
+                              {-0.5, +0.5, +0.5}, {+0.5, +0.5, +0.5}};
+
+  vec3 offset = boundOffsetTable[i] * bound.radius;
+
+  return AABB(bound.radius * 0.5, bound.center + offset);
+}
+
+void BuildOctreeChild(Octree self, vec3 impact) {
+  if (self.depth >= maxDepth) return;
+
+  if (IsInsideAABB(self.bound, impact)) {
+    for (int i = 0; i < 8; i++) {
+      uint idx = atomicAdd(u_OctreeBufferCount, 1);
+      OctreeBuffer[idx] = Octree(ComputeAABB(self.bound, i), self.lod + 1);
+      BuildOctreeChild(OctreeBuffer[idx], impact);
+    }
+  }
+}
+
+void BuildOctreeRoot(vec3 impact) {
+  uint idx = atomicAdd(u_OctreeBufferCount, 1);
+  OctreeBuffer[idx] = Octree(AABB(1, vec3(0, 0, 0)), 1);
+  BuildOctreeChild(OctreeBuffer[idx], impact);
+}

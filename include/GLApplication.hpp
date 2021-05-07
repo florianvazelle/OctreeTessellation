@@ -7,7 +7,7 @@
 class GLApplication {
  private:
   GLKeyEvent _keyEvent;
-  GLShader _basicShader;
+  GLShader _computeShader, _renderShader;
   Sphere _sphere;
 
   // a data structure for storing camera position and orientation
@@ -17,7 +17,7 @@ class GLApplication {
   };
 
   // the used camera
-  cam_t _cam = {0, 0, 3.0, 0};
+  cam_t _cam = {0, 0, 0, 0};
 
   // rotation angles according to axis (0 = x, 1 = y, 2 = z)
   GLfloat rot[3] = {0, 0, 0};
@@ -35,5 +35,4 @@ class GLApplication {
   void Initialize(GLFWwindow* window);
   void Idle();
   void Display(GLFWwindow* window);
-  void Shutdown();
 };

@@ -1,11 +1,15 @@
-#version 330 core
+#version 450 core
 
 layout(location = 0) in vec3 a_position;
+layout(location = 1) in float a_tessLevel;
 
 uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
 
+out float v_tessLevel;
+
 void main(void) {
-  gl_Position = u_projectionMatrix * (u_viewMatrix * (u_modelMatrix * vec4(a_position, 1.0)));
+  gl_Position = vec4(a_position, 1.0);
+  v_tessLevel = a_tessLevel;
 }

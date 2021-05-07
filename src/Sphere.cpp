@@ -1,6 +1,9 @@
 #include <Sphere.hpp>
 
-void Sphere::Initialize(int sectorCount, int stackCount, float radius) {
+#include <stdexcept>
+#include <cstddef>
+
+void Sphere::Generate(int sectorCount, int stackCount, float radius) {
   float x, y, z, xy;  // vertex position
 
   float sectorStep = 2 * M_PI / sectorCount;
@@ -20,7 +23,7 @@ void Sphere::Initialize(int sectorCount, int stackCount, float radius) {
       // vertex position (x, y, z)
       x = xy * cosf(sectorAngle);  // r * cos(u) * cos(v)
       y = xy * sinf(sectorAngle);  // r * cos(u) * sin(v)
-      map_vertices.push_back(glm::vec3(x, y, z));
+      vertices.push_back(Vertex(x, y, z));
     }
   }
 
@@ -29,8 +32,7 @@ void Sphere::Initialize(int sectorCount, int stackCount, float radius) {
   // |  / |
   // | /  |
   // k2--k2+1
-  std::vector<int> indices;
-  std::vector<int> lineIndices;
+
   int k1, k2;
   for (int i = 0; i < stackCount; ++i) {
     k1 = i * (sectorCount + 1);  // beginning of current stack
@@ -40,17 +42,56 @@ void Sphere::Initialize(int sectorCount, int stackCount, float radius) {
       // 2 triangles per sector excluding first and last stacks
       // k1 => k2 => k1+1
       if (i != 0) {
-        map_line_indices.push_back(k1);
-        map_line_indices.push_back(k2);
-        map_line_indices.push_back(k1 + 1);
+        indices.push_back(k1);
+        indices.push_back(k2);
+        indices.push_back(k1 + 1);
       }
 
       // k1+1 => k2 => k2+1
       if (i != (stackCount - 1)) {
-        map_line_indices.push_back(k1 + 1);
-        map_line_indices.push_back(k2);
-        map_line_indices.push_back(k2 + 1);
+        indices.push_back(k1 + 1);
+        indices.push_back(k2);
+        indices.push_back(k2 + 1);
       }
     }
   }
+}
+
+void Sphere::Initialize(const GLuint& shader) {
+  if (vertices.size() == 0 || indices.size() == 0) {
+    throw std::logic_error("Sphere vertices or indices are emtpy.\nDid you call Initialize method before ?");
+  }
+
+  glGenVertexArrays(1, &mesh);
+  glBindVertexArray(mesh);
+
+  // Generate 1 buffer, put the resulting identifier in mesh_vbo
+  glGenBuffers(1, &mesh_vbo);
+  // The following commands will talk about our 'mesh_vbo' buffer
+  glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
+  // Give our vertices to OpenGL.
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
+
+  // Prepare the data for drawing through a buffer indices
+  GLuint mesh_ibo;
+  glGenBuffers(1, &mesh_ibo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_ibo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), indices.data(), GL_STATIC_DRAW);
+
+  Vertex::setAttribute(shader);
+
+  // Unbind
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void Sphere::Draw() {
+  if (mesh == 0) {
+    throw std::logic_error("Sphere's VAO is null.");
+  }
+
+  glBindVertexArray(mesh);
+  glDrawElements(GL_PATCHES, indices.size(), GL_UNSIGNED_INT, 0);
+  glBindVertexArray(0);
 }

@@ -3,36 +3,36 @@
 #include <GL/glew.h>
 
 #include <fstream>
-#include <iostream>
+#include <iostream>	
 
-bool ValidateShader(GLuint shader) {
-  GLint compiled;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+void GLShader::ValidateShader(GLenum status, GLuint shader) const {
+  GLint isValid;
+  glGetShaderiv(shader, status, &isValid);
 
-  if (!compiled) {
+  if (!isValid) {
+    std::string msg = "";
+
     GLint infoLen = 0;
-
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
 
     if (infoLen > 1) {
       char* infoLog = new char[1 + infoLen];
 
       glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-      std::cout << "Error compiling shader:" << infoLog << std::endl;
+
+      msg += ": ";
+      for (int i = 0; i < infoLen; i++) {
+        msg += infoLog[i];
+      }
 
       delete[] infoLog;
+    
+      throw std::runtime_error("Shader error" + msg);
     }
-
-    // on supprime le shader object car il est inutilisable
-    glDeleteShader(shader);
-
-    return false;
   }
-
-  return true;
 }
 
-bool GLShader::LoadShader(GLenum type, const char* filename) {
+void GLShader::LoadShader(GLenum type, const char* filename) {
   // 1. Charger le fichier en memoire
   std::ifstream fin(filename, std::ios::in | std::ios::binary);
   fin.seekg(0, std::ios::end);
@@ -56,12 +56,11 @@ bool GLShader::LoadShader(GLenum type, const char* filename) {
 
   _shaders.push_back(shader);
 
-  // 5.
-  // verifie le status de la compilation
-  return ValidateShader(shader);
+  // 5. Verifie le status de la compilation
+  ValidateShader(GL_COMPILE_STATUS, shader);
 }
 
-bool GLShader::Create() {
+void GLShader::Create() {
   m_Program = glCreateProgram();
 
   for (const GLuint& shader : _shaders) {
@@ -70,39 +69,5 @@ bool GLShader::Create() {
 
   glLinkProgram(m_Program);
 
-  int32_t linked = 0;
-  int32_t infoLen = 0;
-  // verification du statut du linkage
-  glGetProgramiv(m_Program, GL_LINK_STATUS, &linked);
-
-  if (!linked) {
-    glGetProgramiv(m_Program, GL_INFO_LOG_LENGTH, &infoLen);
-
-    if (infoLen > 1) {
-      char* infoLog = new char[infoLen + 1];
-
-      glGetProgramInfoLog(m_Program, infoLen, NULL, infoLog);
-      std::cout << "Erreur de lien du programme: " << infoLog << std::endl;
-
-      delete (infoLog);
-    }
-
-    glDeleteProgram(m_Program);
-
-    return false;
-  }
-
-  return true;
-}
-
-void GLShader::Destroy() {
-  for (const GLuint& shader : _shaders) {
-    glDetachShader(m_Program, shader);
-  }
-
-  for (const GLuint& shader : _shaders) {
-    glDeleteShader(shader);
-  }
-
-  glDeleteProgram(m_Program);
+  ValidateShader(GL_LINK_STATUS, m_Program);
 }

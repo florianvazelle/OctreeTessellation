@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 #define GLEW_STATIC
@@ -18,17 +19,26 @@ class GLShader {
   // un programme fait le liens entre Vertex Shader et Fragment Shader
   GLuint m_Program;
 
-  bool CompileShader(GLuint type);
+  void ValidateShader(GLenum status, GLuint type) const;
 
  public:
   GLShader() : m_Program(0) {}
-  ~GLShader() {}
+  ~GLShader() {
+    for (const GLuint& shader : _shaders) {
+      glDetachShader(m_Program, shader);
+    }
+
+    for (const GLuint& shader : _shaders) {
+      glDeleteShader(shader);
+    }
+
+    glDeleteProgram(m_Program);
+  }
 
   inline GLuint& GetProgram() { return m_Program; }
   inline const GLuint& GetProgram() const { return m_Program; }
 
-  bool LoadShader(GLenum type, const char* filename);
+  void LoadShader(GLenum type, const char* filename);
 
-  bool Create();
-  void Destroy();
+  void Create();
 };

@@ -1,66 +1,29 @@
-#version 420 core
+#version 450 core
 
-uniform int isNoise;
-uniform int applyPhongTess;
-uniform mat4 matMVP;
+layout(
+    // domain on which the primitive generator will work (triangles/quads/isolines)
+    triangles,
+    // edges will be subdivided into segments with equal lengths
+    equal_spacing,
+    // emit triangles in counter-clockwise
+    ccw) in;
 
-layout(quads, equal_spacing, ccw) in;
-layout(binding = 0) uniform sampler2D coarse_height;
-layout(binding = 2) uniform sampler2D noise_height;
+uniform mat4 u_modelMatrix;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
 
-in block {
-  vec3 position;
-  vec3 normal;
-  vec2 texCoord;
-}
-In[];
+out vec4 TEPosition;
 
-out block { vec3 texCoord; }
-Out;
-
-in gl_PerVertex {
-  vec4 gl_Position;
-  float gl_PointSize;
-  float gl_ClipDistance[];
-}
-gl_in[];
-
-out gl_PerVertex {
-  vec4 gl_Position;
-  float gl_PointSize;
-  float gl_ClipDistance[];
-};
+// barycentric interpolation
+vec4 berp(in vec4 v[3], in vec2 u) { return v[0] + u.x * (v[1] - v[0]) + u.y * (v[2] - v[0]); }
 
 void main() {
-  vec3 v0             = mix(In[0].position, In[1].position, gl_TessCoord.x);
-  vec3 v1             = mix(In[3].position, In[2].position, gl_TessCoord.x);
-  vec3 tessellatedPos = mix(v0, v1, gl_TessCoord.y);
+  vec4 v[3] = {
+      gl_in[0].gl_Position,
+      gl_in[1].gl_Position,
+      gl_in[2].gl_Position,
+  };
 
-  if (applyPhongTess == 1) {
-    vec3 p[4];
-#pragma unroll
-    for (uint i = 0; i < 4; i++) {
-      p[i] = tessellatedPos - dot(tessellatedPos - In[i].position, In[i].normal) * In[i].normal;
-    }
-
-    v0             = mix(p[0], p[1], gl_TessCoord.x);
-    v1             = mix(p[3], p[2], gl_TessCoord.x);
-    tessellatedPos = mix(v0, v1, gl_TessCoord.y);
-  }
-
-  vec2 t0       = mix(In[0].texCoord, In[1].texCoord, gl_TessCoord.x);
-  vec2 t1       = mix(In[3].texCoord, In[2].texCoord, gl_TessCoord.x);
-  vec2 texCoord = mix(t0, t1, gl_TessCoord.y);
-
-  if (isNoise == 1) {
-    float noise = texture(noise_height, texCoord * 32).x;
-    tessellatedPos.y += noise;
-  }
-
-  float onBoarder = 0.0f;
-  if (gl_TessCoord.x == 0.0f || gl_TessCoord.x == 1.0f || gl_TessCoord.y == 0.0f || gl_TessCoord.y == 1.0f)
-    onBoarder = 1.0f;
-  Out.texCoord = vec3(texCoord.x, texCoord.y, onBoarder);
-
-  gl_Position = matMVP * vec4(tessellatedPos, 1.0);
+  TEPosition = berp(v, gl_TessCoord.xy);
+  gl_Position = u_projectionMatrix * (u_viewMatrix * (u_modelMatrix * TEPosition));
 }
