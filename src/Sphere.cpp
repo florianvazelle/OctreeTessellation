@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <cstddef>
+#include <iostream>
 
 void Sphere::Generate(int sectorCount, int stackCount, float radius) {
   float x, y, z, xy;  // vertex position

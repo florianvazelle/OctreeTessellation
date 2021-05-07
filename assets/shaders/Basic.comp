@@ -8,20 +8,83 @@ layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 /* Structures */
 
 struct Vertex {
-  float x, y, z;
+  vec3 position;
   float tessLevel;
+};
+
+struct AABB {
+  float radius;
+  vec3 center;
+};
+
+struct Octree {
+  AABB bound;
 };
 
 /* Variables */
 
-layout(std430, binding = 0) buffer VertexBuffer { 
-  vec4 u_VertexBuffer[];
-};
+layout(std430, binding = 0) buffer VertexBuffer { Vertex u_VertexBuffer[]; };
+
+// const variable
+const int maxDepth = 50;
 
 /* Functions */
+
+bool IsInsideAABB(AABB bound, vec3 point) {
+  vec3 p1 = vec3(bound.center.x + bound.radius, bound.center.y + bound.radius, bound.center.z + bound.radius);
+  vec3 p2 = vec3(bound.center.x - bound.radius, bound.center.y + bound.radius, bound.center.z + bound.radius);
+  vec3 p3 = vec3(bound.center.x + bound.radius, bound.center.y - bound.radius, bound.center.z + bound.radius);
+  vec3 p4 = vec3(bound.center.x + bound.radius, bound.center.y + bound.radius, bound.center.z - bound.radius);
+  vec3 p5 = vec3(bound.center.x - bound.radius, bound.center.y - bound.radius, bound.center.z + bound.radius);
+  vec3 p6 = vec3(bound.center.x + bound.radius, bound.center.y - bound.radius, bound.center.z - bound.radius);
+  vec3 p7 = vec3(bound.center.x - bound.radius, bound.center.y + bound.radius, bound.center.z - bound.radius);
+  vec3 p8 = vec3(bound.center.x - bound.radius, bound.center.y - bound.radius, bound.center.z - bound.radius);
+
+  vec3 u = p2 - p1;
+  vec3 v = p2 - p7;
+  vec3 w = p2 - p5;
+
+  float du = dot(u, point);
+  float dv = dot(v, point);
+  float dw = dot(w, point);
+
+  return ((dot(u, p2) <= du && du <= dot(u, p1)) && (dot(u, p2) <= dv && dv <= dot(u, p7)) && (dot(u, p2) <= dw && dw <= dot(u, p5)));
+}
+
+AABB ComputeAABB(AABB bound, int i) {
+  vec3 boundOffsetTable[8] = {{-0.5, -0.5, -0.5}, {+0.5, -0.5, -0.5}, {-0.5, +0.5, -0.5}, {+0.5, +0.5, -0.5}, {-0.5, -0.5, +0.5}, {+0.5, -0.5, +0.5}, {-0.5, +0.5, +0.5}, {+0.5, +0.5, +0.5}};
+
+  vec3 offset = boundOffsetTable[i] * bound.radius;
+
+  return AABB(bound.radius * 0.5, bound.center + offset);
+}
+
+int DetermineLOD(vec3 currentPoint, vec3 impact) {
+  int depth = 1;
+  Octree self = Octree(AABB(1, vec3(0, 0, 0)));
+
+  while (true) {
+    if (depth >= maxDepth) break;  // la profondeur maximum a été atteinte, on peut s'arrêter
+
+    depth += 1;
+    bool found = false;
+    for (int i = 0; i < 8; i++) {
+      Octree octree = Octree(ComputeAABB(self.bound, i));
+      if (IsInsideAABB(octree.bound, impact) && IsInsideAABB(octree.bound, currentPoint)) {
+        self = octree;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) break; // aucun des fils du noeud courant ne possède les deux points, on peut s'arrêter
+  }
+
+  return depth;
+}
 
 void main() {
   uint gid = gl_GlobalInvocationID.x;
 
-  u_VertexBuffer[gid][3] = 4;
+  u_VertexBuffer[gid].tessLevel = DetermineLOD(u_VertexBuffer[gid].position, vec3(1, -1, -1.5));
 }
