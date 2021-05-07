@@ -45,12 +45,7 @@ void GLApplication::Initialize(GLFWwindow* window) {
   const GLuint& render_tess_shader = _renderShader.GetProgram();
   _sphere.Initialize(render_tess_shader);
 
-  {
-    const GLuint& compute_octree_shader = _computeShader.GetProgram();
-
-    GLuint loc_vbo = glGetProgramResourceIndex(compute_octree_shader, GL_SHADER_STORAGE_BLOCK, "VertexBlock");
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc_vbo, _sphere.vbo());
-  }
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _sphere.vbo());
 }
 
 void GLApplication::Idle() {
