@@ -1,5 +1,7 @@
 # OctreeTessellation
 
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/florianvazelle/OctreeTessellation/build/main?label=Windows%20%7C%20Linux&logo=github)
+
 ## Building
 
 ### Build and run the standalone target
@@ -14,9 +16,9 @@ cmake --build build
 
 ## Dependencies
 
-- C++11 compiler :
-  - Visual Studio 2016
-  - GCC 5+ or Clang 5+
+- C++20 compiler :
+  - Visual Studio 2019
+  - GCC 8+ or Clang 8+
 - [CMake](https://cmake.org/) for build system creation (>= 3.8)
 - [Conan](https://conan.io/) for install packages (>= 1.0)
 

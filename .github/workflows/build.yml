@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         compiler: [
-            g++-7, g++-8, g++-9, g++,
+            g++-8, g++-9, g++,
             clang++-8, clang++-9, clang++
         ]
 
@@ -18,24 +18,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Install g++-7
-      if: ${{ matrix.compiler == 'g++-7' }}
+
+    - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install g++-7 -y
+        sudo apt-get install libgl-dev libglu1-mesa-dev -y
     
     - name: Install g++-8
       if: ${{ matrix.compiler == 'g++-8' }}
-      run: |
-        sudo apt-get update
-        sudo apt-get install g++-8 -y
+      run: sudo apt-get install g++-8 -y
 
     - name: Install clang-8
       if: ${{ matrix.compiler == 'clang++-8' }}
-      run: |
-        sudo apt-get update
-        sudo apt-get install clang-8 -y
+      run: sudo apt-get install clang-8 -y
     
     - name: Setup Python
       uses: actions/setup-python@v2
@@ -58,7 +53,6 @@ jobs:
     - name: Build
       working-directory: ${{ runner.workspace }}/build
       shell: bash
-      # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config Debug
 
   windows:
@@ -66,20 +60,14 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, windows-2016]
         toolset: [clang-cl, default, v141]
         include:
           - toolset: clang-cl
             toolset_option: -T"ClangCl"
           - toolset: v141
             toolset_option: -T"v141"
-        exclude:
-          - os: windows-2016
-            toolset: clang-cl
-          - os: windows-2016
-            toolset: v141
 
-    runs-on: ${{ matrix.os }}
+    runs-on:  windows-latest
 
     steps:
     - uses: actions/checkout@v2
