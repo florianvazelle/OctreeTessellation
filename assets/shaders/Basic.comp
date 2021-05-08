@@ -31,25 +31,6 @@ const int maxDepth = 8;
 /* Functions */
 
 bool IsInsideAABB(AABB bound, vec3 point) {
-  // vec3 p1 = vec3(bound.center.x + bound.radius, bound.center.y + bound.radius, bound.center.z + bound.radius);
-  // vec3 p2 = vec3(bound.center.x - bound.radius, bound.center.y + bound.radius, bound.center.z + bound.radius);
-  // vec3 p3 = vec3(bound.center.x + bound.radius, bound.center.y - bound.radius, bound.center.z + bound.radius);
-  // vec3 p4 = vec3(bound.center.x + bound.radius, bound.center.y + bound.radius, bound.center.z - bound.radius);
-  // vec3 p5 = vec3(bound.center.x - bound.radius, bound.center.y - bound.radius, bound.center.z + bound.radius);
-  // vec3 p6 = vec3(bound.center.x + bound.radius, bound.center.y - bound.radius, bound.center.z - bound.radius);
-  // vec3 p7 = vec3(bound.center.x - bound.radius, bound.center.y + bound.radius, bound.center.z - bound.radius);
-  // vec3 p8 = vec3(bound.center.x - bound.radius, bound.center.y - bound.radius, bound.center.z - bound.radius);
-
-  // vec3 u = p2 - p1;
-  // vec3 v = p2 - p7;
-  // vec3 w = p2 - p5;
-
-  // float du = dot(u, point);
-  // float dv = dot(v, point);
-  // float dw = dot(w, point);
-
-  // return ((dot(u, p2) <= du && du <= dot(u, p1)) && (dot(u, p2) <= dv && dv <= dot(u, p7)) && (dot(u, p2) <= dw && dw <= dot(u, p5)));
-
   float minx = bound.center.x - bound.radius;
   float maxx = bound.center.x + bound.radius;
 

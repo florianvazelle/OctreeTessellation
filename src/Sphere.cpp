@@ -25,7 +25,6 @@ void Sphere::Generate(int sectorCount, int stackCount, float radius) {
       x = xy * cosf(sectorAngle);  // r * cos(u) * cos(v)
       y = xy * sinf(sectorAngle);  // r * cos(u) * sin(v)
       vertices.push_back(Vertex(x, y, z));
-      std::cout << x << ", " << y << ", " << z << std::endl;
     }
   }
 
