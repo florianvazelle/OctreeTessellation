@@ -40,7 +40,7 @@ void GLApplication::Initialize(GLFWwindow* window) {
 
   /* Generate sphere structure */
 
-  _sphere.Generate(72, 24, 2.0f);
+  _sphere.Generate(72, 24, 1.0f);
 
   const GLuint& render_tess_shader = _renderShader.GetProgram();
   _sphere.Initialize(render_tess_shader);
