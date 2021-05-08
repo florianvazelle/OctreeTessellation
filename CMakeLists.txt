@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
 
+# ---- Include guards ----
+
+include(cmake/tools/guards.cmake)
+
 # ---- Project ----
 
 project(
@@ -9,11 +13,7 @@ project(
     LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 11)
-
-# ---- Include guards ----
-
-include(cmake/tools/guards.cmake)
+set(CMAKE_CXX_STANDARD 20)
 
 # --- Import tools ----
 

@@ -3,16 +3,17 @@
 #include <stdexcept>
 #include <cstddef>
 #include <iostream>
+#include <numbers>
 
 void Sphere::Generate(int sectorCount, int stackCount, float radius) {
   float x, y, z, xy;  // vertex position
 
-  float sectorStep = 2 * M_PI / sectorCount;
-  float stackStep = M_PI / stackCount;
+  float sectorStep = 2 * std::numbers::pi / sectorCount;
+  float stackStep = std::numbers::pi / stackCount;
   float sectorAngle, stackAngle;
 
   for (int i = 0; i <= stackCount; ++i) {
-    stackAngle = M_PI / 2 - i * stackStep;  // starting from M_PI/2 to -M_PI/2
+    stackAngle = std::numbers::pi / 2 - i * stackStep;  // starting from std::numbers::pi/2 to -std::numbers::pi/2
     xy = radius * cosf(stackAngle);         // r * cos(u)
     z = radius * sinf(stackAngle);          // r * sin(u)
 

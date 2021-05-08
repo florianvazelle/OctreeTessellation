@@ -25,6 +25,8 @@ struct Octree {
 
 layout(std430, binding = 0) buffer VertexBuffer { Vertex u_VertexBuffer[]; };
 
+uniform vec3 u_impact;
+
 // const variable
 const int maxDepth = 8;
 
@@ -78,5 +80,5 @@ int DetermineLOD(vec3 currentPoint, vec3 impact) {
 void main() {
   uint gid = gl_GlobalInvocationID.x;
 
-  u_VertexBuffer[gid].tessLevel = DetermineLOD(u_VertexBuffer[gid].position, vec3(0.866025, 0, -0.5));
+ u_VertexBuffer[gid].tessLevel = DetermineLOD(u_VertexBuffer[gid].position, u_impact);
 }

@@ -7,9 +7,9 @@ uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
 
-out float v_tessLevel;
+out float tesc_tessLevel;
 
 void main(void) {
   gl_Position = vec4(a_position, 1.0);
-  v_tessLevel = a_tessLevel;
+  tesc_tessLevel = a_tessLevel;
 }

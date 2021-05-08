@@ -1,11 +1,13 @@
 #include <GLApplication.hpp>
 
 #define GLM_FORCE_RADIANS
-#include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <cmath>
 #include <iostream>
 #include <vector>
+#include <numbers>
 
 #define WORK_GROUP_SIZE 128
 
@@ -49,7 +51,7 @@ void GLApplication::Initialize(GLFWwindow* window) {
 }
 
 void GLApplication::Idle() {
-  double dt, dtheta = M_PI, step = 50.0;
+  double dt, dtheta = std::numbers::pi, step = 50.0;
   static double t0 = 0, t;
 
   /* Compute delta time */
@@ -88,11 +90,31 @@ void GLApplication::Display(GLFWwindow* window) {
   int width, height;
   glfwGetWindowSize(window, &width, &height);
 
+  /* Compute MVP matrix */
+
+  glm::mat4 model, view, projection;
+
+  glm::vec3 eye = glm::vec3(_cam.x, _cam.y, _cam.z);
+  glm::vec3 look = glm::vec3(_cam.x - std::sin(_cam.theta), 0.0, _cam.z - std::cos(_cam.theta));
+  glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
+
+  model = glm::scale(glm::mat4(1.0), {0.5, 0.5, 0.5});
+
+  view = glm::lookAt(eye, look, up);
+
+  float angle = 90.0f;
+  float near = 0.1f;
+  float far = 100.0f;
+  float aspect = width / height;
+  projection = glm::perspective((float)(angle * std::numbers::pi) / 180.f, aspect, near, far);
+
   /* Computing */
 
   {
     const GLuint& compute_octree_shader = _computeShader.GetProgram();
     glUseProgram(compute_octree_shader);
+
+    glUniform3fv(glGetUniformLocation(compute_octree_shader, "u_impact"), 1, &eye[0]);
 
     // Launch compute shader
     glDispatchCompute(_sphere.vert().size() / 128, 1, 1);
@@ -121,25 +143,9 @@ void GLApplication::Display(GLFWwindow* window) {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    /* Compute MVP matrix */
+    /* Bind MVP matrix */
 
     {
-      glm::mat4 model, view, projection;
-
-      glm::vec3 eye = glm::vec3(_cam.x, _cam.y, _cam.z);
-      glm::vec3 look = glm::vec3(_cam.x - std::sin(_cam.theta), 0.0, _cam.z - std::cos(_cam.theta));
-      glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
-
-      model = glm::scale(glm::mat4(1.0), {0.5, 0.5, 0.5});
-
-      view = glm::lookAt(eye, look, up);
-
-      float angle = 90.0f;
-      float near = 0.1f;
-      float far = 100.0f;
-      float aspect = width / height;
-      projection = glm::perspective((float)(angle * M_PI) / 180.f, aspect, near, far);
-
       glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_modelMatrix"), 1, GL_FALSE, &(model[0][0]));
       glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_viewMatrix"), 1, GL_FALSE, &(view[0][0]));
       glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_projectionMatrix"), 1, GL_FALSE, &(projection[0][0]));
