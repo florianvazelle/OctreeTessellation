@@ -1,11 +1,16 @@
 #version 450 core
 
-in float frag_tessLevel;
+/* Variables */
 
-out vec4 FragColor;
+in float teseTessLevel;
+in vec4 teseModPos;
+
+out vec4 fragColor;
+
+/* Functions */
 
 void main() { 
     float maxDepth = 8.0;
-    float color = frag_tessLevel / maxDepth;
-    FragColor = vec4(color, color, color, 1.0);
+    float color = teseTessLevel / maxDepth;
+    fragColor = vec4(color, color, color, 1.0);
 }

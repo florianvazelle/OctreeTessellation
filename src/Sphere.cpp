@@ -5,6 +5,14 @@
 #include <iostream>
 #include <numbers>
 
+Sphere::Sphere() {}
+
+Sphere::~Sphere() {
+  glDeleteVertexArrays(1, &m_vao);
+  glDeleteBuffers(1, &m_vbo);
+  glDeleteBuffers(1, &m_ibo);
+}
+
 void Sphere::Generate(int sectorCount, int stackCount, float radius) {
   float x, y, z, xy;  // vertex position
 
@@ -17,15 +25,15 @@ void Sphere::Generate(int sectorCount, int stackCount, float radius) {
     xy = radius * cosf(stackAngle);         // r * cos(u)
     z = radius * sinf(stackAngle);          // r * sin(u)
 
-    // add (sectorCount+1) vertices per stack
-    // the first and last vertices have same position and normal, but different tex coords
+    // add (sectorCount+1) m_vertices per stack
+    // the first and last m_vertices have same position and normal, but different tex coords
     for (int j = 0; j <= sectorCount; ++j) {
       sectorAngle = j * sectorStep;  // starting from 0 to 2pi
 
       // vertex position (x, y, z)
       x = xy * cosf(sectorAngle);  // r * cos(u) * cos(v)
       y = xy * sinf(sectorAngle);  // r * cos(u) * sin(v)
-      vertices.push_back(Vertex(x, y, z));
+      m_vertices.push_back(Vertex(x, y, z));
     }
   }
 
@@ -44,41 +52,40 @@ void Sphere::Generate(int sectorCount, int stackCount, float radius) {
       // 2 triangles per sector excluding first and last stacks
       // k1 => k2 => k1+1
       if (i != 0) {
-        indices.push_back(k1);
-        indices.push_back(k2);
-        indices.push_back(k1 + 1);
+        m_indices.push_back(k1);
+        m_indices.push_back(k2);
+        m_indices.push_back(k1 + 1);
       }
 
       // k1+1 => k2 => k2+1
       if (i != (stackCount - 1)) {
-        indices.push_back(k1 + 1);
-        indices.push_back(k2);
-        indices.push_back(k2 + 1);
+        m_indices.push_back(k1 + 1);
+        m_indices.push_back(k2);
+        m_indices.push_back(k2 + 1);
       }
     }
   }
 }
 
 void Sphere::Initialize(const GLuint& shader) {
-  if (vertices.size() == 0 || indices.size() == 0) {
-    throw std::logic_error("Sphere vertices or indices are emtpy.\nDid you call Initialize method before ?");
+  if (m_vertices.size() == 0 || m_indices.size() == 0) {
+    throw std::logic_error("Sphere m_vertices or m_indices are emtpy.\nDid you call Initialize method before ?");
   }
 
-  glGenVertexArrays(1, &mesh);
-  glBindVertexArray(mesh);
+  glGenVertexArrays(1, &m_vao);
+  glBindVertexArray(m_vao);
 
-  // Generate 1 buffer, put the resulting identifier in mesh_vbo
-  glGenBuffers(1, &mesh_vbo);
-  // The following commands will talk about our 'mesh_vbo' buffer
-  glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
-  // Give our vertices to OpenGL.
-  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
+  // Generate 1 buffer, put the resulting identifier in m_vbo
+  glGenBuffers(1, &m_vbo);
+  // The following commands will talk about our 'm_vbo' buffer
+  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+  // Give our m_vertices to OpenGL.
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), GL_DYNAMIC_DRAW);
 
-  // Prepare the data for drawing through a buffer indices
-  GLuint mesh_ibo;
-  glGenBuffers(1, &mesh_ibo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_ibo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), indices.data(), GL_STATIC_DRAW);
+  // Prepare the data for drawing through a buffer m_indices
+  glGenBuffers(1, &m_ibo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_indices.size(), m_indices.data(), GL_STATIC_DRAW);
 
   Vertex::setAttribute(shader);
 
@@ -89,11 +96,11 @@ void Sphere::Initialize(const GLuint& shader) {
 }
 
 void Sphere::Draw() {
-  if (mesh == 0) {
+  if (m_vao == 0) {
     throw std::logic_error("Sphere's VAO is null.");
   }
 
-  glBindVertexArray(mesh);
-  glDrawElements(GL_PATCHES, indices.size(), GL_UNSIGNED_INT, 0);
+  glBindVertexArray(m_vao);
+  glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
 }

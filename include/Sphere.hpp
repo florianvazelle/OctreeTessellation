@@ -10,22 +10,19 @@
 // https://www.songho.ca/opengl/gl_sphere.html#example_sphere
 class Sphere {
  private:
-  GLuint mesh,
-      // This will identify our vertex buffer
-      mesh_vbo;
+  GLuint m_vao, m_vbo, m_ibo;
 
-  std::vector<Vertex> vertices;
-  std::vector<GLuint> indices;
+  std::vector<Vertex> m_vertices;
+  std::vector<GLuint> m_indices;
 
  public:
-  Sphere() {}
-  ~Sphere() {
-    glDeleteVertexArrays(1, &mesh);
-    glDeleteBuffers(1, &mesh_vbo);
-  }
+  Sphere();
+  ~Sphere();
 
-  inline const GLuint& vbo() const { return mesh_vbo; }
-  inline const std::vector<Vertex>& vert() const { return vertices; }
+  /* Inline getters */
+
+  inline const GLuint& vbo() const { return m_vbo; }
+  inline const std::vector<Vertex>& vertices() const { return m_vertices; }
 
   /**
    * @brief Generate vertices and indices

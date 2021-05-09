@@ -1,33 +1,37 @@
-#include <GLKeyEvent.hpp>
+#include <KeyEvent.hpp>
 
 #include <cstdlib>
 #include <iostream>
+
+KeyEvent::KeyEvent() {}
+
+KeyEvent::~KeyEvent() {}
 
 /*
  * Keycode : https://www.glfw.org/docs/3.0/group__keys.html
  */
 
-void GLKeyEvent::keyDown(int keycode) {
+void KeyEvent::keyDown(int keycode) {
   GLint v[2];
   switch (keycode) {
       /* directions */
     case 65:
-      _keys[KLEFT] = 1;
+      m_keys[KLEFT] = 1;
       break;
     case 68:
-      _keys[KRIGHT] = 1;
+      m_keys[KRIGHT] = 1;
       break;
     case 87:
-      _keys[KFORWARD] = 1;
+      m_keys[KFORWARD] = 1;
       break;
     case 83:
-      _keys[KBOTTOM] = 1;
+      m_keys[KBOTTOM] = 1;
       break;
     case 340:
-      _keys[KDOWN] = 1;
+      m_keys[KDOWN] = 1;
       break;
     case 32:
-      _keys[KUP] = 1;
+      m_keys[KUP] = 1;
       break;
 
     /* when 'w' pressed, toggle between line and filled mode */
@@ -48,26 +52,26 @@ void GLKeyEvent::keyDown(int keycode) {
   }
 }
 
-void GLKeyEvent::keyUp(int keycode) {
+void KeyEvent::keyUp(int keycode) {
   switch (keycode) {
     /* directions */
     case 65:
-      _keys[KLEFT] = 0;
+      m_keys[KLEFT] = 0;
       break;
     case 68:
-      _keys[KRIGHT] = 0;
+      m_keys[KRIGHT] = 0;
       break;
     case 87:
-      _keys[KFORWARD] = 0;
+      m_keys[KFORWARD] = 0;
       break;
     case 83:
-      _keys[KBOTTOM] = 0;
+      m_keys[KBOTTOM] = 0;
       break;
     case 340:
-      _keys[KDOWN] = 0;
+      m_keys[KDOWN] = 0;
       break;
     case 32:
-      _keys[KUP] = 0;
+      m_keys[KUP] = 0;
       break;
 
     /* default */

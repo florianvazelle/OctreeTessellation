@@ -7,38 +7,36 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-class GLShader {
+class Shader {
  private:
   // Va contenir la liste de nos shaders :
   // - Un Vertex Shader est execute pour chaque sommet (vertex)
   // - Un Geometry Shader est execute pour chaque primitive
   // - Un Fragment Shader est execute pour chaque "pixel" lors de la rasterization/remplissage de la
   // primitive
-  std::vector<GLuint> _shaders;
+  std::vector<GLuint> m_shaders;
 
   // un programme fait le liens entre Vertex Shader et Fragment Shader
-  GLuint m_Program;
+  GLuint m_program;
 
   void ValidateShader(GLenum status, GLuint type) const;
 
  public:
-  GLShader() : m_Program(0) {}
-  ~GLShader() {
-    for (const GLuint& shader : _shaders) {
-      glDetachShader(m_Program, shader);
-    }
+  Shader();
+  ~Shader();
 
-    for (const GLuint& shader : _shaders) {
-      glDeleteShader(shader);
-    }
+  /* Inline getters */
 
-    glDeleteProgram(m_Program);
-  }
+  inline GLuint& GetProgram() { return m_program; }
+  inline const GLuint& GetProgram() const { return m_program; }
 
-  inline GLuint& GetProgram() { return m_Program; }
-  inline const GLuint& GetProgram() const { return m_Program; }
-
+  /**
+   * @brief Load, compile and validate any shader
+   */
   void LoadShader(GLenum type, const char* filename);
 
+  /**
+   * @brief Create a program and attach all shaders to it
+   */
   void Create();
 };

@@ -1,11 +1,25 @@
-#include <GLShader.hpp>
+#include <Shader.hpp>
 
 #include <GL/glew.h>
 
 #include <fstream>
-#include <iostream>	
+#include <iostream>
 
-void GLShader::ValidateShader(GLenum status, GLuint shader) const {
+Shader::Shader() : m_program(0) {}
+
+Shader::~Shader() {
+  for (const GLuint& shader : m_shaders) {
+    glDetachShader(m_program, shader);
+  }
+
+  for (const GLuint& shader : m_shaders) {
+    glDeleteShader(shader);
+  }
+
+  glDeleteProgram(m_program);
+}
+
+void Shader::ValidateShader(GLenum status, GLuint shader) const {
   GLint isValid;
   glGetShaderiv(shader, status, &isValid);
 
@@ -32,7 +46,7 @@ void GLShader::ValidateShader(GLenum status, GLuint shader) const {
   }
 }
 
-void GLShader::LoadShader(GLenum type, const char* filename) {
+void Shader::LoadShader(GLenum type, const char* filename) {
   // 1. Charger le fichier en memoire
   std::ifstream fin(filename, std::ios::in | std::ios::binary);
   fin.seekg(0, std::ios::end);
@@ -54,20 +68,20 @@ void GLShader::LoadShader(GLenum type, const char* filename) {
   delete[] buffer;
   fin.close();  // non obligatoire ici
 
-  _shaders.push_back(shader);
+  m_shaders.push_back(shader);
 
   // 5. Verifie le status de la compilation
   ValidateShader(GL_COMPILE_STATUS, shader);
 }
 
-void GLShader::Create() {
-  m_Program = glCreateProgram();
+void Shader::Create() {
+  m_program = glCreateProgram();
 
-  for (const GLuint& shader : _shaders) {
-    glAttachShader(m_Program, shader);
+  for (const GLuint& shader : m_shaders) {
+    glAttachShader(m_program, shader);
   }
 
-  glLinkProgram(m_Program);
+  glLinkProgram(m_program);
 
-  ValidateShader(GL_LINK_STATUS, m_Program);
+  ValidateShader(GL_LINK_STATUS, m_program);
 }

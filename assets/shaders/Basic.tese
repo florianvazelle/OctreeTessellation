@@ -12,10 +12,12 @@ uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
 
-in float tese_tessLevel[];
-out float frag_tessLevel;
+in float tescTessLevel[];
 
-out vec4 TEPosition;
+out float teseTessLevel;
+out vec4 teseModPos;
+
+out vec4 tesePosition;
 
 // barycentric interpolation
 vec4 berp(in vec4 v[3], in vec2 u) { return v[0] + u.x * (v[1] - v[0]) + u.y * (v[2] - v[0]); }
@@ -27,8 +29,8 @@ void main() {
       gl_in[2].gl_Position,
   };
 
-  frag_tessLevel = tese_tessLevel[0];
-
-  TEPosition = berp(v, gl_TessCoord.xy);
-  gl_Position = u_projectionMatrix * (u_viewMatrix * (u_modelMatrix * TEPosition));
+  teseTessLevel = tescTessLevel[0];
+  tesePosition = berp(v, gl_TessCoord.xy);
+  teseModPos = u_modelMatrix * tesePosition;
+  gl_Position = u_projectionMatrix * (u_viewMatrix * teseModPos);
 }
