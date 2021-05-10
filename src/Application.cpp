@@ -20,6 +20,7 @@ Application::Application(Context& context) {
   m_renderShader.LoadShader(GL_VERTEX_SHADER, BASIC_VERT);
   m_renderShader.LoadShader(GL_TESS_CONTROL_SHADER, BASIC_TESC);
   m_renderShader.LoadShader(GL_TESS_EVALUATION_SHADER, BASIC_TESE);
+  m_renderShader.LoadShader(GL_GEOMETRY_SHADER, BASIC_GEOM);
   m_renderShader.LoadShader(GL_FRAGMENT_SHADER, BASIC_FRAG);
   m_renderShader.Create();
 
@@ -129,6 +130,9 @@ void Application::Display(Context& context) {
     /* OpenGL Stuff */
 
     {
+      // Face culling
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_BACK);
       // Enable depth test
       glEnable(GL_DEPTH_TEST);
       // Accept fragment if it closer to the camera than the former one

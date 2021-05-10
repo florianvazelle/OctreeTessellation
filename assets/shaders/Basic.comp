@@ -29,8 +29,6 @@ layout(std430, binding = 0) buffer VertexBuffer { Vertex u_VertexBuffer[]; };
 
 uniform vec3 uImpact;
 
-const int cMaxDepth = 8;
-
 /* Functions */
 
 bool IsInsideAABB(AABB bound, vec3 point) {
@@ -56,10 +54,12 @@ AABB ComputeAABB(AABB bound, int i) {
 
 int DetermineLOD(vec3 currentPoint, vec3 impact) {
   int depth = 0;
+  const int MAX_DEPTH = 16;
+
   Octree self = Octree(AABB(2, vec3(0, 0, 0)));
 
   while (true) {
-    if (depth >= cMaxDepth) break;  // la profondeur maximum a été atteinte, on peut s'arrêter
+    if (depth >= MAX_DEPTH) break;  // la profondeur maximum a été atteinte, on peut s'arrêter
 
     depth += 1;
     bool found = false;
