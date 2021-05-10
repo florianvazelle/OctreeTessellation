@@ -24,14 +24,9 @@ Application::Application(Context& context) {
   m_renderShader.LoadShader(GL_FRAGMENT_SHADER, BASIC_FRAG);
   m_renderShader.Create();
 
-  /* Initialize OpenGL stuff */
-
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  // glLineWidth(0.5);
-
   /* Generate sphere structure */
 
-  m_sphere.Generate(72, 24);
+  m_sphere.Generate(24, 8);
 
   const GLuint& render_tess_shader = m_renderShader.GetProgram();
   m_sphere.Initialize(render_tess_shader);
@@ -105,14 +100,26 @@ void Application::Display(Context& context) {
     // Convert eye position (world coordinates) to model's local space
     glm::vec3 localEye = glm::inverse(model) * glm::vec4(eye, 1.0f);
     
+    // Compute the ray between the camera and the sphere
     Ray ray;
     ray.origin = localEye;
     ray.vector = glm::normalize(-ray.origin);
 
+    // Determine the point of intersection between them
     glm::vec3 impact;
     Sphere::Intersect(ray, impact); // Intersection in local space
 
-    glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &impact[0]);
+    // With a maximum display distance for the camera :
+    // 1. We compute the directional vector
+    glm::vec3 dir = glm::normalize(impact - localEye);
+    // 2. And the maximum impact point
+    glm::vec3 maxImpact = localEye + (dir * 2.5f);
+
+    if (glm::distance(localEye, impact) < glm::distance(localEye, maxImpact)) {
+      glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &impact[0]);
+    } else {
+      glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &maxImpact[0]);
+    }
 
     // Launch compute shader
     glDispatchCompute(m_sphere.vertices().size() / 128, 1, 1);
@@ -133,12 +140,15 @@ void Application::Display(Context& context) {
       // Face culling
       glEnable(GL_CULL_FACE);
       glCullFace(GL_BACK);
+
       // Enable depth test
       glEnable(GL_DEPTH_TEST);
+      
       // Accept fragment if it closer to the camera than the former one
       glDepthFunc(GL_LESS);
 
       glViewport(0, 0, width, height);
+      
       // Clear the screen
       glClearColor(0.f, 0.f, 1.f, 1.f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
