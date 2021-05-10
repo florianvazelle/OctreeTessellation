@@ -9,10 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        compiler: [
-            g++-8, g++-9, g++,
-            clang++-8, clang++-9, clang++
-        ]
+        compiler: [g++-10, clang++-11]
 
     runs-on: ubuntu-latest
 
@@ -24,13 +21,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install libgl-dev libglu1-mesa-dev -y
     
-    - name: Install g++-8
-      if: ${{ matrix.compiler == 'g++-8' }}
-      run: sudo apt-get install g++-8 -y
+    - name: Install g++-10
+      if: ${{ matrix.compiler == 'g++-10' }}
+      run: sudo apt-get install g++-10 -y
 
-    - name: Install clang-8
-      if: ${{ matrix.compiler == 'clang++-8' }}
-      run: sudo apt-get install clang-8 -y
+    - name: Install clang-11
+      if: ${{ matrix.compiler == 'clang++-11' }}
+      run: sudo apt-get install clang-11 -y
     
     - name: Setup Python
       uses: actions/setup-python@v2

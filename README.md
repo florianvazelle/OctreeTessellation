@@ -16,9 +16,9 @@ cmake --build build
 
 ## Dependencies
 
-- C++20 compiler :
-  - Visual Studio 2019
-  - GCC 8+ or Clang 8+
+- C++20 compiler (to use [Mathematical constants](https://en.cppreference.com/w/cpp/numeric/constants)) :
+  - VS 2019 16.5
+  - GCC 10+ or Clang 11+
 - [CMake](https://cmake.org/) for build system creation (>= 3.8)
 - [Conan](https://conan.io/) for install packages (>= 1.0)
 
