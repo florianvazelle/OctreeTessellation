@@ -20,20 +20,20 @@ void Sphere::Generate(int slices, int stacks) {
   {
     int i, j, k;
     GLdouble phi, theta, r, y;
-    GLdouble c2MPI_Long = 2.0 * M_PI / slices;
-    GLdouble cMPI_Lat = M_PI / stacks;
+    GLdouble c2MPI_Long = 2.0 * std::numbers::pi / slices;
+    GLdouble cMPI_Lat = std::numbers::pi / stacks;
 
     m_vertices.resize((slices + 1) * (stacks + 1));
 
     for (i = 0, k = 0; i <= (int)stacks; ++i) {
-      theta = -M_PI_2 + i * cMPI_Lat;
+      theta = -(std::numbers::pi / 2.0f) + i * cMPI_Lat;
       y = sin(theta);
       r = cos(theta);
       for (j = 0; j <= (int)slices; ++j) {
         phi = j * c2MPI_Long;
 
         glm::vec3 position = glm::vec3(r * cos(phi), y, r * sin(phi));
-        glm::vec2 texCoord = glm::vec2(phi / (2.0 * M_PI), (theta + M_PI_2) / M_PI);
+        glm::vec2 texCoord = glm::vec2(phi / (2.0 * std::numbers::pi), (theta + (std::numbers::pi / 2.0f)) / std::numbers::pi);
 
         m_vertices[k++] = {position, position, texCoord, 1.0f};
       }

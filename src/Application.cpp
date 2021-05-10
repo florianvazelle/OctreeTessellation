@@ -25,8 +25,8 @@ Application::Application(Context& context) {
 
   /* Initialize OpenGL stuff */
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  glLineWidth(0.5);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // glLineWidth(0.5);
 
   /* Generate sphere structure */
 
