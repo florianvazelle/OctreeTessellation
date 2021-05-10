@@ -6,8 +6,8 @@
 #include <vector>
 
 #include <Vertex.hpp>
+#include <Ray.hpp>
 
-// https://www.songho.ca/opengl/gl_sphere.html#example_sphere
 class Sphere {
  private:
   GLuint m_vao, m_vbo, m_ibo;
@@ -38,4 +38,9 @@ class Sphere {
    * @brief Draw VAO
    */
   void Draw();
+
+  /**
+   * @brief Compute intersection between a ray and a sphere, in local space
+   */
+  static bool Intersect(const Ray& ray, glm::vec3& impact);
 };

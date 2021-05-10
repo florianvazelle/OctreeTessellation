@@ -73,7 +73,7 @@ int DetermineLOD(vec3 currentPoint, vec3 impact) {
       }
     }
 
-    if (!found) break; // aucun des fils du noeud courant ne possède les deux points, on peut s'arrêter
+    if (!found) break;  // aucun des fils du noeud courant ne possède les deux points, on peut s'arrêter
   }
 
   return depth;
@@ -82,5 +82,5 @@ int DetermineLOD(vec3 currentPoint, vec3 impact) {
 void main() {
   uint gid = gl_GlobalInvocationID.x;
 
- u_VertexBuffer[gid].tessLevel = DetermineLOD(u_VertexBuffer[gid].position, u_impact);
+  u_VertexBuffer[gid].tessLevel = DetermineLOD(u_VertexBuffer[gid].position, u_impact);
 }

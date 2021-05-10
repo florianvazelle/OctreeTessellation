@@ -104,3 +104,42 @@ void Sphere::Draw() {
   glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
 }
+
+bool Sphere::Intersect(const Ray& ray, glm::vec3& impact) {
+  glm::vec3 O = glm::vec4(ray.origin, 1.0f);
+  glm::vec3 V = glm::vec4(ray.vector, 0.0f);
+
+  float a = glm::dot(V, V);
+  float b = 2 * glm::dot(V, O);
+  float c = glm::dot(O, O) - 1;
+
+  float t0, t1;
+
+  float discr = b * b - 4 * a * c;
+  if (discr < 0)
+    return false;
+  else if (discr == 0)
+    t0 = t1 = -0.5 * b / a;
+  else {
+    float q = (b > 0) ? -0.5 * (b + sqrt(discr)) : -0.5 * (b - sqrt(discr));
+    t0 = q / a;
+    t1 = c / q;
+  }
+
+  if (t0 > t1) std::swap(t0, t1);
+
+  if (t0 < 0) {
+    t0 = t1;                   // if t0 is negative, let's use t1 instead
+    if (t0 < 0) return false;  // both t0 and t1 are negative
+  }
+
+  float t = t0;
+
+  impact[0] = O[0] + t * V[0];
+  impact[1] = O[1] + t * V[1];
+  impact[2] = O[2] + t * V[2];
+
+  impact = glm::vec4(impact, 1.0f);
+
+  return true;
+}

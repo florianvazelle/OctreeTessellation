@@ -75,6 +75,7 @@ void Application::Idle(Context& context) {
 void Application::Display(Context& context) {
   int width, height;
   glfwGetWindowSize(context.window(), &width, &height);
+  glfwSetWindowAspectRatio(context.window(), width, height);
 
   /* Compute MVP matrix */
 
@@ -84,7 +85,7 @@ void Application::Display(Context& context) {
   glm::vec3 look = glm::vec3(m_cam.x - std::sin(m_cam.theta), 0.0, m_cam.z - std::cos(m_cam.theta));
   glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
 
-  model = glm::scale(glm::mat4(1.0), {0.5, 0.5, 0.5});
+  model = glm::translate(glm::scale(glm::mat4(1.0), {0.5, 0.5, 0.5}), {0, 0, -3});
 
   view = glm::lookAt(eye, look, up);
 
@@ -100,7 +101,17 @@ void Application::Display(Context& context) {
     const GLuint& compute_octree_shader = m_computeShader.GetProgram();
     glUseProgram(compute_octree_shader);
 
-    glUniform3fv(glGetUniformLocation(compute_octree_shader, "u_impact"), 1, &eye[0]);
+    // Convert eye position (world coordinates) to model's local space
+    glm::vec3 localEye = glm::inverse(model) * glm::vec4(eye, 1.0f);
+    
+    Ray ray;
+    ray.origin = localEye;
+    ray.vector = glm::normalize(-ray.origin);
+
+    glm::vec3 impact;
+    Sphere::Intersect(ray, impact); // Intersection in local space
+
+    glUniform3fv(glGetUniformLocation(compute_octree_shader, "u_impact"), 1, &impact[0]);
 
     // Launch compute shader
     glDispatchCompute(m_sphere.vertices().size() / 128, 1, 1);
