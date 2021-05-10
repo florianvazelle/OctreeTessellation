@@ -1,9 +1,8 @@
 #include <Sphere.hpp>
-
-#include <stdexcept>
 #include <cstddef>
 #include <iostream>
 #include <numbers>
+#include <stdexcept>
 
 Sphere::Sphere() {}
 
@@ -13,55 +12,56 @@ Sphere::~Sphere() {
   glDeleteBuffers(1, &m_ibo);
 }
 
-void Sphere::Generate(int sectorCount, int stackCount, float radius) {
-  float x, y, z, xy;  // vertex position
+void Sphere::Generate(int slices, int stacks) {
+  assert(slices > 0 && stacks > 0);
 
-  float sectorStep = 2 * std::numbers::pi / sectorCount;
-  float stackStep = std::numbers::pi / stackCount;
-  float sectorAngle, stackAngle;
+  /* Generate vertices */
 
-  for (int i = 0; i <= stackCount; ++i) {
-    stackAngle = std::numbers::pi / 2 - i * stackStep;  // starting from std::numbers::pi/2 to -std::numbers::pi/2
-    xy = radius * cosf(stackAngle);         // r * cos(u)
-    z = radius * sinf(stackAngle);          // r * sin(u)
+  {
+    int i, j, k;
+    GLdouble phi, theta, r, y;
+    GLdouble c2MPI_Long = 2.0 * M_PI / slices;
+    GLdouble cMPI_Lat = M_PI / stacks;
 
-    // add (sectorCount+1) m_vertices per stack
-    // the first and last m_vertices have same position and normal, but different tex coords
-    for (int j = 0; j <= sectorCount; ++j) {
-      sectorAngle = j * sectorStep;  // starting from 0 to 2pi
+    m_vertices.resize((slices + 1) * (stacks + 1));
 
-      // vertex position (x, y, z)
-      x = xy * cosf(sectorAngle);  // r * cos(u) * cos(v)
-      y = xy * sinf(sectorAngle);  // r * cos(u) * sin(v)
-      m_vertices.push_back(Vertex(x, y, z));
+    for (i = 0, k = 0; i <= (int)stacks; ++i) {
+      theta = -M_PI_2 + i * cMPI_Lat;
+      y = sin(theta);
+      r = cos(theta);
+      for (j = 0; j <= (int)slices; ++j) {
+        phi = j * c2MPI_Long;
+
+        glm::vec3 position = glm::vec3(r * cos(phi), y, r * sin(phi));
+        glm::vec2 texCoord = glm::vec2(phi / (2.0 * M_PI), (theta + M_PI_2) / M_PI);
+
+        m_vertices[k++] = {position, position, texCoord, 1.0f};
+      }
     }
   }
 
-  // generate CCW index list of sphere triangles
-  // k1--k1+1
-  // |  / |
-  // | /  |
-  // k2--k2+1
+  /* Generate indices */
 
-  int k1, k2;
-  for (int i = 0; i < stackCount; ++i) {
-    k1 = i * (sectorCount + 1);  // beginning of current stack
-    k2 = k1 + sectorCount + 1;   // beginning of next stack
+  {
+    int width = slices + 1, height = stacks + 1;
+    int z, nz, x, nx, k, zw, nzw, wm1 = width - 1, hm1 = height - 1;
 
-    for (int j = 0; j < sectorCount; ++j, ++k1, ++k2) {
-      // 2 triangles per sector excluding first and last stacks
-      // k1 => k2 => k1+1
-      if (i != 0) {
-        m_indices.push_back(k1);
-        m_indices.push_back(k2);
-        m_indices.push_back(k1 + 1);
-      }
+    m_indices.resize(6 * wm1 * hm1);
 
-      // k1+1 => k2 => k2+1
-      if (i != (stackCount - 1)) {
-        m_indices.push_back(k1 + 1);
-        m_indices.push_back(k2);
-        m_indices.push_back(k2 + 1);
+    for (z = 0, k = 0; z < hm1; ++z) {
+      nz = z + 1;
+      zw = z * width;
+      nzw = nz * width;
+      for (x = 0; x < wm1; ++x) {
+        nx = x + 1;
+
+        m_indices[k++] = zw + x;
+        m_indices[k++] = nzw + x;
+        m_indices[k++] = zw + nx;
+
+        m_indices[k++] = zw + nx;
+        m_indices[k++] = nzw + x;
+        m_indices[k++] = nzw + nx;
       }
     }
   }
@@ -69,7 +69,7 @@ void Sphere::Generate(int sectorCount, int stackCount, float radius) {
 
 void Sphere::Initialize(const GLuint& shader) {
   if (m_vertices.size() == 0 || m_indices.size() == 0) {
-    throw std::logic_error("Sphere m_vertices or m_indices are emtpy.\nDid you call Initialize method before ?");
+    throw std::logic_error("Sphere's vertices or indices are emtpy.\nDid you call Generate method before ?");
   }
 
   glGenVertexArrays(1, &m_vao);
@@ -80,7 +80,7 @@ void Sphere::Initialize(const GLuint& shader) {
   // The following commands will talk about our 'm_vbo' buffer
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
   // Give our m_vertices to OpenGL.
-  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
 
   // Prepare the data for drawing through a buffer m_indices
   glGenBuffers(1, &m_ibo);

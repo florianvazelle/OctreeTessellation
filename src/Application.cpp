@@ -30,7 +30,7 @@ Application::Application(Context& context) {
 
   /* Generate sphere structure */
 
-  m_sphere.Generate(72, 24, 1.0f);
+  m_sphere.Generate(72, 24);
 
   const GLuint& render_tess_shader = m_renderShader.GetProgram();
   m_sphere.Initialize(render_tess_shader);

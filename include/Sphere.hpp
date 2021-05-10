@@ -27,7 +27,7 @@ class Sphere {
   /**
    * @brief Generate vertices and indices
    */
-  void Generate(int sectorCount, int stackCount, float radius);
+  void Generate(int slices, int stacks);
 
   /**
    * @brief Create a VAO, VBO and a IBO
