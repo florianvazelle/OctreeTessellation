@@ -1,25 +1,20 @@
 #version 450 core
 
-layout(
-    // domain on which the primitive generator will work (triangles/quads/isolines)
-    triangles,
-    // edges will be subdivided into segments with equal lengths
-    equal_spacing,
-    // emit triangles in counter-clockwise
-    ccw) in;
+layout(triangles, equal_spacing, ccw) in;
 
-uniform mat4 u_modelMatrix;
-uniform mat4 u_viewMatrix;
-uniform mat4 u_projectionMatrix;
+/* Variables */
 
-in float tescTessLevel[];
+uniform mat4 uModelMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uProjectionMatrix;
 
-out float teseTessLevel;
-out vec4 teseModPos;
+layout(location = 0) in float iTessLevel[];
 
-out vec4 tesePosition;
+layout(location = 0) out float oTessLevel;
 
-// barycentric interpolation
+/* Functions */
+
+// Barycentric interpolation
 vec4 berp(in vec4 v[3], in vec2 u) { return v[0] + u.x * (v[1] - v[0]) + u.y * (v[2] - v[0]); }
 
 void main() {
@@ -29,8 +24,6 @@ void main() {
       gl_in[2].gl_Position,
   };
 
-  teseTessLevel = tescTessLevel[0];
-  tesePosition = berp(v, gl_TessCoord.xy);
-  teseModPos = u_modelMatrix * tesePosition;
-  gl_Position = u_projectionMatrix * (u_viewMatrix * teseModPos);
+  gl_Position = uProjectionMatrix * (uViewMatrix * (uModelMatrix * berp(v, gl_TessCoord.xy)));
+  oTessLevel = iTessLevel[0];
 }

@@ -27,10 +27,9 @@ struct Octree {
 
 layout(std430, binding = 0) buffer VertexBuffer { Vertex u_VertexBuffer[]; };
 
-uniform vec3 u_impact;
+uniform vec3 uImpact;
 
-// const variable
-const int maxDepth = 8;
+const int cMaxDepth = 8;
 
 /* Functions */
 
@@ -60,7 +59,7 @@ int DetermineLOD(vec3 currentPoint, vec3 impact) {
   Octree self = Octree(AABB(2, vec3(0, 0, 0)));
 
   while (true) {
-    if (depth >= maxDepth) break;  // la profondeur maximum a été atteinte, on peut s'arrêter
+    if (depth >= cMaxDepth) break;  // la profondeur maximum a été atteinte, on peut s'arrêter
 
     depth += 1;
     bool found = false;
@@ -82,5 +81,5 @@ int DetermineLOD(vec3 currentPoint, vec3 impact) {
 void main() {
   uint gid = gl_GlobalInvocationID.x;
 
-  u_VertexBuffer[gid].tessLevel = DetermineLOD(u_VertexBuffer[gid].position, u_impact);
+  u_VertexBuffer[gid].tessLevel = DetermineLOD(u_VertexBuffer[gid].position, uImpact);
 }

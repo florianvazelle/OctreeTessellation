@@ -1,22 +1,33 @@
 #version 450 core
 
-// The number of vertices in the output patch is defined with an output layout qualifier:
+#define ID gl_InvocationID
+
+/* Variables */
+
 layout(vertices = 3) out;
 
-in float vertTessLevel[];
-out float tescTessLevel[];
+layout(location = 0) in float iTessLevel[];
+
+layout(location = 0) out float oTessLevel[3];
+
+/* Functions */
 
 void main() {
-  // Pass along the vertex position unmodified
-  gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-  tescTessLevel[gl_InvocationID] = vertTessLevel[gl_InvocationID];
+  /* Pass data */
 
-  float tessLevel = 1.0;
+  // On passe les valeurs sans les modifiées
+  gl_out[ID].gl_Position = gl_in[ID].gl_Position;
+  oTessLevel[ID] = iTessLevel[ID];
 
-  // Set built-in patch output variables
-  gl_TessLevelOuter[0] = vertTessLevel[0];
-  gl_TessLevelOuter[1] = vertTessLevel[1];
-  gl_TessLevelOuter[2] = vertTessLevel[2];
+  /* Update TessLevel */
 
-  gl_TessLevelInner[0] = tessLevel;
+  // On va vouloir gardé un unique triangle
+  gl_TessLevelInner[0] = 1.0;
+
+  // Et on split ce triangle en n triangle
+  gl_TessLevelOuter[0] = iTessLevel[0];
+  gl_TessLevelOuter[1] = iTessLevel[1];
+  gl_TessLevelOuter[2] = iTessLevel[2];
+
+  // gl_TessLevelInner et gl_TessLevelOuter sont les variables de sortie du patch
 }

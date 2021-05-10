@@ -111,7 +111,7 @@ void Application::Display(Context& context) {
     glm::vec3 impact;
     Sphere::Intersect(ray, impact); // Intersection in local space
 
-    glUniform3fv(glGetUniformLocation(compute_octree_shader, "u_impact"), 1, &impact[0]);
+    glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &impact[0]);
 
     // Launch compute shader
     glDispatchCompute(m_sphere.vertices().size() / 128, 1, 1);
@@ -143,9 +143,9 @@ void Application::Display(Context& context) {
     /* Bind MVP matrix */
 
     {
-      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_modelMatrix"), 1, GL_FALSE, &(model[0][0]));
-      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_viewMatrix"), 1, GL_FALSE, &(view[0][0]));
-      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "u_projectionMatrix"), 1, GL_FALSE, &(projection[0][0]));
+      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "uModelMatrix"), 1, GL_FALSE, &(model[0][0]));
+      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "uViewMatrix"), 1, GL_FALSE, &(view[0][0]));
+      glUniformMatrix4fv(glGetUniformLocation(render_tess_shader, "uProjectionMatrix"), 1, GL_FALSE, &(projection[0][0]));
     }
 
     /* Draw */

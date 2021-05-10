@@ -7,10 +7,10 @@ struct Vertex {
   alignas(4) float tessLevel;
 
   static void setAttribute(const GLuint& shader) {
-    int loc_position = glGetAttribLocation(shader, "a_position");
-    int loc_normal = glGetAttribLocation(shader, "a_normal");
-    int loc_texCoord = glGetAttribLocation(shader, "a_texCoord");
-    int loc_tessLevel = glGetAttribLocation(shader, "a_tessLevel");
+    int loc_position = glGetAttribLocation(shader, "aPosition");
+    int loc_normal = glGetAttribLocation(shader, "aNormal");
+    int loc_texCoord = glGetAttribLocation(shader, "aTexCoord");
+    int loc_tessLevel = glGetAttribLocation(shader, "aTessLevel");
 
     // Indique que les donnees sont sous forme de tableau
     glEnableVertexAttribArray(loc_position);

@@ -2,15 +2,14 @@
 
 /* Variables */
 
-in float teseTessLevel;
-in vec4 teseModPos;
+layout(location = 0) in float iTessLevel;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 oColour;
 
 /* Functions */
 
 void main() { 
     float maxDepth = 8.0;
-    float color = teseTessLevel / maxDepth;
-    fragColor = vec4(color, color, color, 1.0);
+    float color = iTessLevel / maxDepth;
+    oColour.rgb = vec3(color);
 }
