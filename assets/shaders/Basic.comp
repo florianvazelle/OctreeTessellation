@@ -3,6 +3,8 @@
 #extension GL_ARB_compute_shader : enable
 #extension GL_ARB_shader_storage_buffer_object : enable
 
+precision highp float;
+
 layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 /* Structures */
@@ -52,11 +54,14 @@ AABB ComputeAABB(AABB bound, int i) {
   return AABB(bound.radius * 0.5, bound.center + offset);
 }
 
-int DetermineLOD(vec3 currentPoint, vec3 impact) {
-  int depth = 0;
-  const int MAX_DEPTH = 16;
+uint DetermineLOD(vec3 currentPoint, vec3 impact) {
+  uint lod = 1;
+  const uint MAX_LOD = 64;
 
-  Octree self = Octree(AABB(2, vec3(0, 0, 0)));
+  uint depth = 0;
+  const uint MAX_DEPTH = 3;
+
+  Octree self = Octree(AABB(2, impact));
 
   while (true) {
     if (depth >= MAX_DEPTH) break;  // la profondeur maximum a été atteinte, on peut s'arrêter
@@ -66,6 +71,7 @@ int DetermineLOD(vec3 currentPoint, vec3 impact) {
     for (int i = 0; i < 8; i++) {
       Octree octree = Octree(ComputeAABB(self.bound, i));
       if (IsInsideAABB(octree.bound, impact) && IsInsideAABB(octree.bound, currentPoint)) {
+        lod += MAX_LOD / MAX_DEPTH;
         self = octree;
         found = true;
         break;
@@ -75,7 +81,7 @@ int DetermineLOD(vec3 currentPoint, vec3 impact) {
     if (!found) break;  // aucun des fils du noeud courant ne possède les deux points, on peut s'arrêter
   }
 
-  return depth;
+  return lod;
 }
 
 void main() {
