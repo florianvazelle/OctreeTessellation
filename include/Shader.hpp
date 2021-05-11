@@ -20,6 +20,7 @@ class Shader {
   GLuint m_program;
 
   void ValidateShader(GLenum status, GLuint type) const;
+  void ValidateProgram(GLenum status, GLuint type) const;
 
  public:
   Shader();

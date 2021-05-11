@@ -8,41 +8,60 @@
 Shader::Shader() : m_program(0) {}
 
 Shader::~Shader() {
-  for (const GLuint& shader : m_shaders) {
-    glDetachShader(m_program, shader);
+  if (m_program != 0) {
+    for (const GLuint& shader : m_shaders) {
+      glDetachShader(m_program, shader);
+    }
   }
 
   for (const GLuint& shader : m_shaders) {
     glDeleteShader(shader);
   }
 
-  glDeleteProgram(m_program);
+  if (m_program != 0) {
+    glDeleteProgram(m_program);
+  }
 }
 
 void Shader::ValidateShader(GLenum status, GLuint shader) const {
-  GLint isValid;
+  int32_t isValid = 0;
   glGetShaderiv(shader, status, &isValid);
 
   if (!isValid) {
-    std::string msg = "";
-
-    GLint infoLen = 0;
+    int32_t infoLen = 0;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
 
     if (infoLen > 1) {
-      char* infoLog = new char[1 + infoLen];
+      char* infoLog = new char[infoLen + 1];
 
       glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-
-      msg += ": ";
-      for (int i = 0; i < infoLen; i++) {
-        msg += infoLog[i];
-      }
+      std::cout << infoLog << std::endl;
 
       delete[] infoLog;
-    
-      throw std::runtime_error("Shader error" + msg);
     }
+
+    throw std::runtime_error("Error shader");
+  }
+}
+
+void Shader::ValidateProgram(GLenum status, GLuint shader) const {
+  int32_t isValid = 0;
+  glGetProgramiv(shader, status, &isValid);
+
+  if (!isValid) {
+    int32_t infoLen = 0;
+    glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+
+    if (infoLen > 1) {
+      char* infoLog = new char[infoLen + 1];
+
+      glGetProgramInfoLog(shader, infoLen, NULL, infoLog);
+      std::cout << infoLog << std::endl;
+
+      delete[] infoLog;
+    }
+
+    throw std::runtime_error("Error shader");
   }
 }
 
@@ -83,5 +102,5 @@ void Shader::Create() {
 
   glLinkProgram(m_program);
 
-  ValidateShader(GL_LINK_STATUS, m_program);
+  ValidateProgram(GL_LINK_STATUS, m_program);
 }
