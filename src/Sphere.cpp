@@ -35,7 +35,7 @@ void Sphere::Generate(int slices, int stacks) {
         glm::vec3 position = glm::vec3(r * cos(phi), y, r * sin(phi));
         glm::vec2 texCoord = glm::vec2(phi / (2.0 * std::numbers::pi), (theta + (std::numbers::pi / 2.0f)) / std::numbers::pi);
 
-        m_vertices[k++] = {position, position, texCoord, 1.0f};
+        m_vertices[k++] = {position, position, texCoord};
       }
     }
   }

@@ -4,8 +4,7 @@
 
 layout(location = 0) in vec3 iNormal;
 layout(location = 1) in vec2 iTexCoord;
-layout(location = 2) in float iTessLevel;
-layout(location = 3) in float iFactor;
+layout(location = 2) in float iFactor;
 
 layout(location = 0) out vec4 oColour;
 

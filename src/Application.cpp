@@ -14,8 +14,8 @@
 Application::Application(Context& context) {
   /* Load shaders */
 
-  m_computeShader.LoadShader(GL_COMPUTE_SHADER, BASIC_COMP);
-  m_computeShader.Create();
+  // m_computeShader.LoadShader(GL_COMPUTE_SHADER, BASIC_COMP);
+  // m_computeShader.Create();
 
   m_renderShader.LoadShader(GL_VERTEX_SHADER, BASIC_VERT);
   m_renderShader.LoadShader(GL_TESS_CONTROL_SHADER, BASIC_TESC);
@@ -93,40 +93,40 @@ void Application::Display(Context& context) {
 
   /* Computing */
 
-  {
-    const GLuint& compute_octree_shader = m_computeShader.GetProgram();
-    glUseProgram(compute_octree_shader);
+  // {
+  //   const GLuint& compute_octree_shader = m_computeShader.GetProgram();
+  //   glUseProgram(compute_octree_shader);
 
-    // Convert eye position (world coordinates) to model's local space
-    glm::vec3 localEye = glm::inverse(model) * glm::vec4(eye, 1.0f);
+  //   // Convert eye position (world coordinates) to model's local space
+  //   glm::vec3 localEye = glm::inverse(model) * glm::vec4(eye, 1.0f);
     
-    // Compute the ray between the camera and the sphere
-    Ray ray;
-    ray.origin = localEye;
-    ray.vector = glm::normalize(-ray.origin);
+  //   // Compute the ray between the camera and the sphere
+  //   Ray ray;
+  //   ray.origin = localEye;
+  //   ray.vector = glm::normalize(-ray.origin);
 
-    // Determine the point of intersection between them
-    glm::vec3 impact;
-    Sphere::Intersect(ray, impact); // Intersection in local space
+  //   // Determine the point of intersection between them
+  //   glm::vec3 impact;
+  //   Sphere::Intersect(ray, impact); // Intersection in local space
 
-    // With a maximum display distance for the camera :
-    // 1. We compute the directional vector
-    glm::vec3 dir = glm::normalize(impact - localEye);
-    // 2. And the maximum impact point
-    glm::vec3 maxImpact = localEye + (dir * 2.5f);
+  //   // With a maximum display distance for the camera :
+  //   // 1. We compute the directional vector
+  //   glm::vec3 dir = glm::normalize(impact - localEye);
+  //   // 2. And the maximum impact point
+  //   glm::vec3 maxImpact = localEye + (dir * 2.5f);
 
-    if (glm::distance(localEye, impact) < glm::distance(localEye, maxImpact)) {
-      glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &impact[0]);
-    } else {
-      glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &maxImpact[0]);
-    }
+  //   if (glm::distance(localEye, impact) < glm::distance(localEye, maxImpact)) {
+  //     glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &impact[0]);
+  //   } else {
+  //     glUniform3fv(glGetUniformLocation(compute_octree_shader, "uImpact"), 1, &maxImpact[0]);
+  //   }
 
-    // Launch compute shader
-    glDispatchCompute(m_sphere.vertices().size() / 128, 1, 1);
-  }
+  //   // Launch compute shader
+  //   glDispatchCompute(m_sphere.vertices().size() / 128, 1, 1);
+  // }
 
   // Make sure writing to buffer has finished before read
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+  // glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
   /* Rendering */
 

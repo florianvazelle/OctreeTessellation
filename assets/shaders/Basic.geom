@@ -20,8 +20,7 @@ layout(location = 2) in float iTessLevel[];
 
 layout(location = 0) out vec3 oNormal;
 layout(location = 1) out vec2 oTexCoord;
-layout(location = 2) out float oTessLevel;
-layout(location = 3) out float oFactor;
+layout(location = 2) out float oFactor;
 
 /* Functions */
 
@@ -68,7 +67,6 @@ void main() {
         
         oNormal = iNormal[i];
         oTexCoord = iTexCoord[i];
-        oTessLevel = iTessLevel[i];
         oFactor = factor;
 
         EmitVertex();

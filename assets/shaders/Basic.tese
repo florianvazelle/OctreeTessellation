@@ -8,11 +8,9 @@ uniform mat4 uModelMatrix;
 
 layout(location = 0) in vec3 iNormal[];
 layout(location = 3) in vec2 iTexCoord[];
-layout(location = 6) in float iTessLevel[];
 
 layout(location = 0) out vec3 oNormal;
 layout(location = 1) out vec2 oTexCoord;
-layout(location = 2) out float oTessLevel;
 
 /* Functions */
 
@@ -38,5 +36,4 @@ void main() {
   oNormal = (transpose(inverse(uModelMatrix)) * vec4(inorm, 0.0)).xyz;
 
   oTexCoord = interpolate2D(iTexCoord[0], iTexCoord[1], iTexCoord[2]);
-  oTessLevel = iTessLevel[0];
 }
