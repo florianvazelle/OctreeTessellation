@@ -7,9 +7,9 @@ include(cmake/tools/guards.cmake)
 # ---- Project ----
 
 project(
-    OctreeTessellation
+    glTessellation
     DESCRIPTION "Real-time adaptative level of detail with tessellation shader"
-    HOMEPAGE_URL "https://github.com/florianvazelle/OctreeTessellation"
+    HOMEPAGE_URL "https://github.com/florianvazelle/glTessellation"
     LANGUAGES CXX
 )
 

@@ -1,6 +1,6 @@
-# OctreeTessellation
+# glTessellation
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/florianvazelle/OctreeTessellation/build/main?label=Windows%20%7C%20Linux&logo=github)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/florianvazelle/glTessellation/build/main?label=Windows%20%7C%20Linux&logo=github)
 
 ## Building
 
@@ -11,7 +11,7 @@ Use the following command to build and run the executable target.
 ```bash
 cmake -B build
 cmake --build build
-./build/bin/OctreeTessellation
+./build/bin/glTessellation
 ```
 
 ## Dependencies
