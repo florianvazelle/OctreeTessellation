@@ -22,6 +22,33 @@ cmake --build build
 - [CMake](https://cmake.org/) for build system creation (>= 3.8)
 - [Conan](https://conan.io/) for install packages (>= 1.0)
 
+## Example
+
+My scene renders a sphere whose vertices are modified by a geometry shader, to look like a "planet". And the color is added according to the height of the vertex.  
+The camera can move in space.
+
+- The sphere initially sent does not have many triangles.
+
+<div align="center">
+  <img src="https://florianvazelle.github.io/resources/images/glTessellation/glTessellation_3.png?raw=true" alt="glTessellation_3" width="300"/>
+  <img src="https://florianvazelle.github.io/resources/images/glTessellation/glTessellation_3_wireframe.png?raw=true" alt="glTessellation_3_wireframe" width="300"/>
+</div>
+
+- When the camera gets closer, we see the planet starting to become more detailed.
+
+<div align="center">
+  <img src="https://florianvazelle.github.io/resources/images/glTessellation/glTessellation_2.png?raw=true" alt="glTessellation_2" width="300"/>
+  <img src="https://florianvazelle.github.io/resources/images/glTessellation/glTessellation_2_wireframe.png?raw=true" alt="glTessellation_2_wireframe" width="300"/>
+</div>
+
+- When the camera is very close we see a very well defined planet.
+
+<div align="center">
+  <img src="https://florianvazelle.github.io/resources/images/glTessellation/glTessellation_1.png?raw=true" alt="glTessellation_1" width="300"/>
+  <img src="https://florianvazelle.github.io/resources/images/glTessellation/glTessellation_1_wireframe.png?raw=true" alt="glTessellation_1_wireframe" width="300"/>
+</div>
+
+
 ## References
 
 ### Octree
